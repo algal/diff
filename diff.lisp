@@ -445,6 +445,8 @@ of context; the default of three should be good enough for most situations.")
 
 ;;; Actually producing diffs.
 (defun walk-diff-regions (context diff-regions)
+  (declare (type diff-generator context))
+  (declare (type list diff-regions))
   (dolist (region diff-regions)
     (process-region context region))
   ;; Pick off any stragglers.  FIXME: is this appropriate for a generic
@@ -474,9 +476,8 @@ of context; the default of three should be good enough for most situations.")
   (:documentation "Print WINDOW to STREAM"))
 
 (defun generate-diff (diff-kind original-pathname modified-pathname)
-  "Compute a diff between ORIGINAL-PATHNAME and MODIFIED-PATHNAME.
-DIFF-KIND indicates the type of DIFF generated and should be the symbol
-DIFF:UNIFIED-DIFF or DIFF:CONTEXT-DIFF."
+  "Returns diff object between ORIGINAL-PATHNAME and MODIFIED-PATHNAME.
+DIFF-KIND should be the symbol DIFF:UNIFIED-DIFF or DIFF:CONTEXT-DIFF."
   (multiple-value-bind (interner interned-files)
       (intern-files original-pathname modified-pathname)
     (let* ((original (first interned-files))
@@ -489,12 +490,16 @@ DIFF:UNIFIED-DIFF or DIFF:CONTEXT-DIFF."
         (walk-diff-regions context diff-regions)))))
 
 (defun format-diff (diff-kind original-pathname modified-pathname &optional (stream *standard-output*))
+  "Output stream for diff between ORIGINAL-PATHNAME and MODIFIED-PATHNAME.
+DIFF-KIND should be the symbol DIFF:UNIFIED-DIFF or DIFF:CONTEXT-DIFF."
   (render-diff (generate-diff diff-kind
                               original-pathname
                               modified-pathname)
                stream))
 
 (defun format-diff-string (diff-kind original-pathname modified-pathname)
+  "Returns string of diff between ORIGINAL-PATHNAME and MODIFIED-PATHNAME.
+DIFF-KIND should be the symbol DIFF:UNIFIED-DIFF or DIFF:CONTEXT-DIFF."
   (with-output-to-string (out)
     (format-diff diff-kind original-pathname modified-pathname out)))
 
