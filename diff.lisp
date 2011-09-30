@@ -81,16 +81,23 @@
         ,@body))))
 
 (defun intern-files (&rest files)
-  "Returns values of an interner and list of interned-files"
+  "Returns values of an interner and list interned-files.
+The interner contains the mapping from codes to objects (strings).
+Each interned-file is a vector of the intern codes for the file's lines"
   (let ((interner (make-interner))
         (interned-files nil))
+    ;; for each file..
     (dolist (file files 
              (values interner (nreverse interned-files)))
       (let ((interned-file nil))
         (do-file-lines (line file)
+          ;; intern each line of file
           (let ((code (intern-string interner line)))
+            ;; collecting the intern codes
             (push code interned-file)))
-        (push (coerce (nreverse interned-file) 'simple-vector) interned-files)))))
+        ;; save the list of codes as a correctly-ordered vector
+        (push (coerce (nreverse interned-file) 'simple-vector) 
+              interned-files)))))
 
 ;;; Computing longest common subsequences between two sequences whose
 ;;; elements compare equal via EQL.  The algorithm used here is based
@@ -111,6 +118,7 @@
             (snake-length snake))))
 
 (defun snake (lcs original modified k y)
+  (declare (type simple-vector original modified))
   (let* ((x (- y k))
          (y y)
          (x-start x)
@@ -174,6 +182,10 @@
           (do-snake delta))))))
 
 (defun compute-lcs (original modified)
+  "Computes longest common sequence.
+Takes ORIGINAL and MODIFIED, two vectors of intern codes. Compute LCS
+using algorithm from _An O(NP) Sequence Comparison Algorithm_ by Sun
+Wu, Udi Manber, and Gene Meyers"
   (let* ((original-length (length original))
          (modified-length (length modified))
          (modified-longer-p (> modified-length original-length))
