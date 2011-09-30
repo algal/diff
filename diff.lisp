@@ -37,18 +37,24 @@
                          :reader object-to-code-table)
    (code-to-object-table :initarg :code-to-object-table
                          :accessor code-to-object-table)
-   (last-code :initform 0 :type integer :accessor last-code)))
+   (last-code :initform 0 :type integer :accessor last-code))
+  (:documentation "An interner mantains a bidirectional mapping
+between equal objects (e.g., strings) and integer codes. Based on a
+hash-table and an array"))
 
 (defun make-interner (&key (test #'equal))
+  "Creates an interner, using TEST for object equality"
   (let ((object-to-code-table (make-hash-table :test test))
         (code-to-object-table (make-array 128)))
     (make-instance 'interner :object-to-code-table object-to-code-table
                    :code-to-object-table code-to-object-table)))
 
 (defun interned-object (interner code)
+  "Returns object interned in INTERNER with intern CODE"
   (aref (code-to-object-table interner) code))
 
 (defun intern-string (interner string)
+  "Interns STRING in INTERNER, and returns its intern code"
   (multiple-value-bind (code presentp)
       (gethash string (object-to-code-table interner))
     (if presentp
@@ -81,9 +87,9 @@
         ,@body))))
 
 (defun intern-files (&rest files)
-  "Returns values of an interner and list interned-files.
-The interner contains the mapping from codes to objects (strings).
-Each interned-file is a vector of the intern codes for the file's lines"
+  "Returns a new interner and a list of interned-files.
+The interner interns all the lines in the files. Each returned
+interned-file is a vector of the intern codes for the file's lines"
   (let ((interner (make-interner))
         (interned-files nil))
     ;; for each file..
