@@ -81,9 +81,11 @@
         ,@body))))
 
 (defun intern-files (&rest files)
+  "Returns values of an interner and list of interned-files"
   (let ((interner (make-interner))
         (interned-files nil))
-    (dolist (file files (values interner (nreverse interned-files)))
+    (dolist (file files 
+             (values interner (nreverse interned-files)))
       (let ((interned-file nil))
         (do-file-lines (line file)
           (let ((code (intern-string interner line)))
